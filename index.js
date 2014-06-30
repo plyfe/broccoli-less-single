@@ -74,16 +74,21 @@ LessCompiler.prototype.write = function (readTree, destDir) {
 
       var promise = new RSVP.Promise(function(resolve, reject) {
         parser.parse(data, function (e, tree) {
-          if (e) {
-            less.writeError(e, lessOptions);
-            reject(e);
+          try {
+            if (e) {
+              less.writeError(e, lessOptions);
+              reject(e);
+            }
+
+            var css = tree.toCSS(lessOptions);
+            fs.writeFileSync(destFile, css, {
+              encoding: 'utf8'
+            });
+
+            resolve(self._tmpDestDir);
+          } catch(error) {
+            reject(error);
           }
-          var css = tree.toCSS(lessOptions);
-          fs.writeFileSync(destFile, css, { encoding: 'utf8' });
-
-          self.cached = css;
-
-          resolve(self.tmpDestDir);
         });
       });
 
